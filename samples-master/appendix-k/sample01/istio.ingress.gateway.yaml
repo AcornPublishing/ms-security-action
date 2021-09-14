@@ -1,0 +1,46 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: ecomm-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway 
+  servers:
+  - port:
+      number: 443
+      name: http
+      protocol: HTTPS
+    tls:
+      mode: PASSTHROUGH
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ecomm-virtual-service
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - ecomm-gateway.istio-system.svc.cluster.local
+  tls:
+    - match:
+      - port: 443
+        sniHosts:
+        - sts.ecomm.com
+      route:
+      - destination:
+          host: sts-service
+          port:
+            number: 443
+    - match:
+      - port: 443
+        sniHosts:
+        - orders.ecomm.com
+      route:
+      - destination:
+          host: orders-service
+          port:
+            number: 443
